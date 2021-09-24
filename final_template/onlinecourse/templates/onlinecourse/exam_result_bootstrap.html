@@ -7,29 +7,29 @@
 </head>
 <body>
 
- <nav class="navbar navbar-light bg-light">
+<nav class="navbar navbar-light bg-light">
     <div class="container-fluid">
         <div class="navbar-header">
-              <a class="navbar-brand" href="{% url 'onlinecourse:index' %}">Home</a>
+            <a class="navbar-brand" href="{% url 'onlinecourse:index' %}">Home</a>
         </div>
         <ul class="nav navbar-nav navbar-right">
             {% if user.is_authenticated %}
-            <li>
-                <a class="btn btn-link" href="#">{{ user.first_name }}({{ user.username }})</a>
-                <a class="btn btn-link" href="{% url 'onlinecourse:logout' %}">Logout</a>
-            </li>
+                <li>
+                    <a class="btn btn-link" href="#">{{ user.first_name }}({{ user.username }})</a>
+                    <a class="btn btn-link" href="{% url 'onlinecourse:logout' %}">Logout</a>
+                </li>
             {% else %}
-            <li>
-                <form class="form-inline" action="{% url 'onlinecourse:login' %}" method="post">
-                    {% csrf_token %}
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Username" name="username" >
-                        <input type="password" class="form-control" placeholder="Username" name="psw" >
-                        <button class="btn btn-primary" type="submit">Login</button>
-                        <a class="btn btn-link" href="{% url 'onlinecourse:registration' %}">Sign Up</a>
-                    </div>
-                </form>
-            </li>
+                <li>
+                    <form class="form-inline" action="{% url 'onlinecourse:login' %}" method="post">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="Username" name="username">
+                            <input type="password" class="form-control" placeholder="Username" name="psw">
+                            <button class="btn btn-primary" type="submit">Login</button>
+                            <a class="btn btn-link" href="{% url 'onlinecourse:registration' %}">Sign Up</a>
+                        </div>
+                    </form>
+                </li>
             {% endif %}
         </ul>
     </div>
@@ -37,19 +37,49 @@
 
 <div class="container-fluid">
     {% if grade > 80 %}
-    <div class="alert alert-success">
-       <!--HINT Display passed info -->
-    </div>
-        {% else %}
+        <div class="alert alert-success">
+            <b>Congratulations, {{ user.username }}!</b> You have passed the exam with score
+            <b>{{ total_user }}/{{ total }}</b></b>
+        </div>
+    {% else %}
         <div class="alert alert-danger">
-            <!--HINT Display failed info -->
+            <b>Sorry {{ user.username }}, you failed.</b> You have failed exam with score
+            <b>{{ total_user }}/{{ total }}</b></b>
         </div>
         <a class="btn btn-link text-danger" href="{% url 'onlinecourse:course_details' course.id %}">Re-test</a>
-        {% endif %}
-        <div class="card-columns-vertical mt-1">
+    {% endif %}
+    <div class="card-columns-vertical mt-1">
         <h5 class="">Exam results</h5>
-            <!--HINT Display exam results-->
-        </div>
+        <div><h4>Results for course: <strong>{{ course.name }}</strong></h4></div>
+        <hr>
+        {% for l in lesson %}
+            <div>
+                <h5>Lesson: <strong>{{ l.title }}</strong></h5>
+                {% for q in l.question_set.all %}
+                    <p>Question: {{ q.question_text }}</p>
+                    {% for c in q.choice_set.all %}
+                        <br>{{ c.choice_text }}
+                        <!-- highlight the answer selected by user and indicate if correct or not-->
+                        {% for k, v in c_submits.items %}
+                            {% if c.id == k and v == True and c.is_correct %}
+                                <strong class="text-success">(you selected) CORRECT </strong>
+                            {% elif c.id == k and v == True and not c.is_correct %}
+                                <strong class="text-danger">(you selected) WRONG </strong>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                    {% for key, value in q_results.items %}
+                        {% if q.id == key %}
+                            <p></p>
+                            <p><strong>Grade: </strong>{{ value }} points</p>
+                        {% endif %}
+                    {% endfor %}
+                    <hr>
+                {% endfor %}
+            </div>
+        {% endfor %}
+        Total points: {{ total_user }} / {{ total }}
     </div>
+</div>
 </body>
 </html>
